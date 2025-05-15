@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface UserRoleRepository extends JpaRepository<UserRole, Integer> {
     List<UserRole> findByUserUserId(String userId);
+
+    void deleteByRoleRoleIdInAndUserUserId(List<String> removeRoleIds, String userId);
 }

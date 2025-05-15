@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")
@@ -24,5 +26,14 @@ public class UserController {
     }
 
     @GetMapping("/getAllUsers")
+    public ResponseEntity<List<UserModel>> getUsers(@RequestParam String search){
+        return ResponseEntity.ok(userService.getAllUsers(search));
+    }
+
+    @PutMapping("/updateDetails/{userId}")
+    public ResponseEntity<UserModel> updateProfile(@PathVariable String userId,
+                                                   @RequestBody UserModel userModel) {
+        return ResponseEntity.ok(userService.updateProfile(userId, userModel));
+    }
 
 }

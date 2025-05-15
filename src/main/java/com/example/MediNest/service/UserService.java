@@ -10,6 +10,7 @@ import com.example.MediNest.model.UserModel;
 import com.example.MediNest.repository.RoleRepository;
 import com.example.MediNest.repository.UserRepository;
 import com.example.MediNest.repository.UserRoleRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -86,5 +87,90 @@ public class UserService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
         userRepository.delete(user);
+    }
+
+    public List<UserModel> getAllUsers(String search) {
+        List<User> userList = userRepository.searchUsers(search);
+
+        List<UserModel> userModelList = userList.stream().map(user -> {
+            UserModel userModel = userMapper.userToUserModel(user);
+            List<UserRole> userRoles = userRoleRepository.findByUserUserId(user.getUserId());
+            List<RoleModel> roleModelList = userRoles.stream().map(userRole -> roleMapper.roleToRoleModel(userRole.getRole())).toList();
+            userModel.setRoles(roleModelList);
+            return userModel;
+        }).toList();
+        return userModelList;
+    }
+
+    @Transactional
+    public UserModel updateProfile(String userId, UserModel userModel) {
+
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        userMapper.updateUsersModel(userModel, existingUser);
+        existingUser.setUserId(userId);
+
+        User savedUser = userRepository.save(existingUser);
+
+        List<String> incomingRoleIdsFromModel = userModel.getRoles().stream()
+                .map(r -> r.getRoleId()).distinct().toList();
+
+        List<Role> roleInDb = roleRepository.findAllByRoleIdIn(incomingRoleIdsFromModel);
+
+        List<String> roleIdsInDb = roleInDb.stream()
+               .map(r -> r.getRoleId()).distinct().toList();
+
+        List<UserRole> existingRoles = userRoleRepository.findByUserUserId(userId);
+        List<String> existingRoleIds = existingRoles.stream()
+              .map(r -> r.getRole().getRoleId()).distinct().toList();
+
+        List<String> removeRoleIds = new ArrayList<>();
+
+        for(String roleId : existingRoleIds){
+            if(!incomingRoleIdsFromModel.contains(roleId)){
+                removeRoleIds.add(roleId);
+            }
+        }
+
+        if(!removeRoleIds.isEmpty()){
+            userRoleRepository.deleteByRoleRoleIdInAndUserUserId(removeRoleIds, userId);
+        }
+
+        List<String> nonAllocateRoleIds = incomingRoleIdsFromModel.stream()
+                .filter(roleId -> !existingRoleIds.contains(roleId))
+                .toList();
+
+        List<String> invalidRoles = new ArrayList<>();
+        if(!nonAllocateRoleIds.isEmpty()){
+            for(String roleId : nonAllocateRoleIds){
+                if(!roleIdsInDb.contains(roleId)){
+                    invalidRoles.add(roleId);
+                }
+            }
+        }
+
+        if(!invalidRoles.isEmpty()){
+            throw new RuntimeException("Invalid roles: " + invalidRoles);
+        }
+
+        List<Role> updatedRoles = roleInDb.stream()
+               .filter(r -> nonAllocateRoleIds.contains(r.getRoleId()))
+               .toList();
+
+        for(Role role : updatedRoles){
+            UserRole userRole = new UserRole();
+            userRole.setUser(savedUser);
+            userRole.setRole(role);
+            userRoleRepository.save(userRole);
+        }
+
+        UserModel updatedUserModel = userMapper.userToUserModel(savedUser);
+
+        List<UserRole> updatedUserRoles = userRoleRepository.findByUserUserId(userId);
+
+        List<RoleModel> updatedRoleModels = updatedUserRoles.stream()
+              .map(r -> roleMapper.roleToRoleModel(r.getRole())).toList();
+        updatedUserModel.setRoles(updatedRoleModels);
+        return updatedUserModel;
     }
 }
