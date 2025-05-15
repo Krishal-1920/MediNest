@@ -44,6 +44,8 @@ public class User {
     @Column(name = "address", nullable = false)
     private String address;
 
+    // Mapping
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserRole> userRoles;
 }

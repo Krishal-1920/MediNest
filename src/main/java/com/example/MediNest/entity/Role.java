@@ -19,6 +19,8 @@ public class Role {
     @Column(name = "role_name", nullable = false, unique = true)
     private String roleName;
 
+    // Mapping
+
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     private List<UserRole> userRoles;
 }

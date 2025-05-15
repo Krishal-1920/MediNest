@@ -15,6 +15,8 @@ public class UserRole {
     @Column(name = "user_role_id", updatable = false, nullable = false)
     private String userRoleId;
 
+    // Mapping
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
