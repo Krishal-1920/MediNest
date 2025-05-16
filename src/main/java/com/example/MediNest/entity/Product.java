@@ -22,7 +22,7 @@ public class Product {
     private String productDescription;
 
     @Column(name = "productPrice")
-    private String productPrice;
+    private double productPrice;
 
     @Column(name = "product_rating")
     @Min(value = 0)

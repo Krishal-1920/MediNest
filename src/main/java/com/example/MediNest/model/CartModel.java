@@ -7,7 +7,7 @@ public class CartModel {
 
     private String username;
     private String productName;
-    private String productPrice;
+    private double productPrice;
     private int quantity;
 
 }

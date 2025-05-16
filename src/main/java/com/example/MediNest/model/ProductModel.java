@@ -7,7 +7,7 @@ public class ProductModel {
 
     private String productName;
     private String productDescription;
-    private String productPrice;
+    private double productPrice;
     private float productRating;
 
 }
