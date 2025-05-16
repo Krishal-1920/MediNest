@@ -13,6 +13,11 @@ public class Cart {
     @Column(name = "cart_id", updatable = false, nullable = false)
     private String cartId;
 
+    @Column(name = "quantity")
+    private Integer quantity;
+
+    // Mapping
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -20,8 +25,5 @@ public class Cart {
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
-
-    @Column(name = "quantity")
-    private Integer quantity;
 
 }
