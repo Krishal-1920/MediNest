@@ -3,6 +3,8 @@ package com.example.MediNest.service;
 import com.example.MediNest.entity.Role;
 import com.example.MediNest.entity.User;
 import com.example.MediNest.entity.UserRole;
+import com.example.MediNest.exceptions.DataNotFoundException;
+import com.example.MediNest.exceptions.DataValidationException;
 import com.example.MediNest.mapper.RoleMapper;
 import com.example.MediNest.mapper.UserMapper;
 import com.example.MediNest.model.RoleModel;
@@ -58,7 +60,7 @@ public class UserService {
         }
 
         if (!invalidRoles.isEmpty()) {
-            throw new RuntimeException("Invalid roles: " + invalidRoles);
+            throw new DataValidationException("Invalid roles: " + invalidRoles);
         }
 
         // Filter Valid Roles
@@ -85,7 +87,7 @@ public class UserService {
 
     public void deleteUser(String userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new DataNotFoundException("User not found"));
         userRepository.delete(user);
     }
 
@@ -106,7 +108,7 @@ public class UserService {
     public UserModel updateProfile(String userId, UserModel userModel) {
 
         User existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
         userMapper.updateUsersModel(userModel, existingUser);
         existingUser.setUserId(userId);
 
@@ -150,7 +152,7 @@ public class UserService {
         }
 
         if(!invalidRoles.isEmpty()){
-            throw new RuntimeException("Invalid roles: " + invalidRoles);
+            throw new DataValidationException("Invalid roles: " + invalidRoles);
         }
 
         List<Role> updatedRoles = roleInDb.stream()

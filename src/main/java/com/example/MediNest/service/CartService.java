@@ -3,6 +3,7 @@ package com.example.MediNest.service;
 import com.example.MediNest.entity.Cart;
 import com.example.MediNest.entity.Product;
 import com.example.MediNest.entity.User;
+import com.example.MediNest.exceptions.DataNotFoundException;
 import com.example.MediNest.model.AddCartModel;
 import com.example.MediNest.model.CartModel;
 import com.example.MediNest.repository.CartRepository;
@@ -25,10 +26,10 @@ public class CartService {
 
     public CartModel addItemToCart(String userId, String productId) {
         User userById = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User Id Not Found"));
+                .orElseThrow(() -> new DataNotFoundException("User Id Not Found"));
 
         Product productById = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product Id Not Found"));
+                .orElseThrow(() -> new DataNotFoundException("Product Id Not Found"));
 
         Cart cart = new Cart();
         cart.setUser(userById);
@@ -48,14 +49,14 @@ public class CartService {
 
     public void deleteItemById(String cartId) {
         Cart cartItemToRemove = cartRepository.findById(cartId)
-                .orElseThrow(() -> new RuntimeException("Cart Item Already Removed"));
+                .orElseThrow(() -> new DataNotFoundException("Cart Item Already Removed"));
         cartRepository.delete(cartItemToRemove);
     }
 
 
     public AddCartModel getCartDetails(String userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User Not found"));
+                .orElseThrow(() -> new DataNotFoundException("User Not found"));
 
         List<Cart> cartList = cartRepository.findByUserUserId(userId);
 
