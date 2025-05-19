@@ -62,7 +62,15 @@ public class CartService {
     public void deleteItemById(String cartId) {
         Cart cartItemToRemove = cartRepository.findById(cartId)
                 .orElseThrow(() -> new DataNotFoundException("Cart Item Already Removed"));
-        cartRepository.delete(cartItemToRemove);
+
+        int quantity = cartItemToRemove.getQuantity();
+        if (quantity > 1) {
+            cartItemToRemove.setQuantity(quantity - 1);
+            cartRepository.save(cartItemToRemove);
+        }
+        else{
+            cartRepository.delete(cartItemToRemove);
+        }
     }
 
 
@@ -87,7 +95,5 @@ public class CartService {
 
         return addCartModel;
     }
-
-
 
 }
