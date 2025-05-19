@@ -33,7 +33,6 @@ public class UserService {
 
     private final RoleMapper roleMapper;
 
-
     public UserModel signUp(UserModel userModel) {
 
         User adduser = userMapper.userModelToUser(userModel);
@@ -83,7 +82,6 @@ public class UserService {
         return userModelToReturn;
 
     }
-
 
     public void deleteUser(String userId) {
         User user = userRepository.findById(userId)

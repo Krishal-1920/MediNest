@@ -1,6 +1,5 @@
 package com.example.MediNest.exceptions;
 
-
 import lombok.Data;
 
 @Data

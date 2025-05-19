@@ -51,7 +51,6 @@ public class BillingService {
         billingModel.setCartItems(myCart);
         billingModel.setTotalPrice(totalPrice);
         return billingModel;
-
     }
 
 }
