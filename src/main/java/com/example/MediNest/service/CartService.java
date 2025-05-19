@@ -9,10 +9,12 @@ import com.example.MediNest.model.CartModel;
 import com.example.MediNest.repository.CartRepository;
 import com.example.MediNest.repository.ProductRepository;
 import com.example.MediNest.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ public class CartService {
 
     private final CartRepository cartRepository;
 
+    @Transactional
     public CartModel addItemToCart(String userId, String productId) {
         User userById = userRepository.findById(userId)
                 .orElseThrow(() -> new DataNotFoundException("User Id Not Found"));
@@ -31,10 +34,18 @@ public class CartService {
         Product productById = productRepository.findById(productId)
                 .orElseThrow(() -> new DataNotFoundException("Product Id Not Found"));
 
-        Cart cart = new Cart();
-        cart.setUser(userById);
-        cart.setProduct(productById);
-        cart.setQuantity(1);
+        Optional<Cart> optionalCart = cartRepository.findByUserUserIdAndProductProductId(userId, productId);
+
+        Cart cart;
+        if (optionalCart.isPresent()) {
+            cart = optionalCart.get();
+            cart.setQuantity(cart.getQuantity() + 1);
+        } else {
+            cart = new Cart();
+            cart.setUser(userById);
+            cart.setProduct(productById);
+            cart.setQuantity(1);
+        }
 
         Cart savedCart = cartRepository.save(cart);
 
@@ -46,6 +57,7 @@ public class CartService {
 
         return cartModel;
     }
+
 
     public void deleteItemById(String cartId) {
         Cart cartItemToRemove = cartRepository.findById(cartId)
