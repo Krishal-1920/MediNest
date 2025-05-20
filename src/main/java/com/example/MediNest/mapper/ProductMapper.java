@@ -4,6 +4,7 @@ import com.example.MediNest.entity.Product;
 import com.example.MediNest.model.ProductModel;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
@@ -31,6 +32,6 @@ public interface ProductMapper {
     @Mapping(target = "productDescription", source = "productModel.productDescription")
     @Mapping(target = "productPrice", source = "productModel.productPrice")
     @Mapping(target = "productRating", source = "productModel.productRating")
-    Product updateProductModel(ProductModel productModel, Product productById);
+    Product updateProductModel(ProductModel productModel,@MappingTarget Product productById);
 
 }
