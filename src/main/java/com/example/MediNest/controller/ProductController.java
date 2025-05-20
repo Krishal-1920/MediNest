@@ -26,13 +26,13 @@ public class ProductController {
         return ResponseEntity.ok(productService.productList(search));
     }
 
-    @PutMapping("/updateItem/{productId}")
+    @PutMapping("/updateItem")
     public ResponseEntity<ProductModel> updateProduct(@PathVariable String productId,
                                                      @RequestBody ProductModel productModel) {
         return ResponseEntity.ok(productService.updateProduct(productId, productModel));
     }
 
-    @DeleteMapping("/deleteItem/{productId}")
+    @DeleteMapping("/deleteItem")
     public void deleteProduct(@PathVariable String productId){
         productService.deleteProduct(productId);
     }

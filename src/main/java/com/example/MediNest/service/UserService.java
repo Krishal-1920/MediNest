@@ -14,6 +14,7 @@ import com.example.MediNest.repository.UserRepository;
 import com.example.MediNest.repository.UserRoleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -33,10 +34,12 @@ public class UserService {
 
     private final RoleMapper roleMapper;
 
+    private final PasswordEncoder passwordEncoder;
+
     public UserModel signUp(UserModel userModel) {
 
         User adduser = userMapper.userModelToUser(userModel);
-
+        adduser.setPassword(passwordEncoder.encode(userModel.getPassword()));
         // Save User To get Id
         userRepository.save(adduser);
 
@@ -84,8 +87,7 @@ public class UserService {
     }
 
     public void deleteUser(String userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new DataNotFoundException("User not found"));
+        User user = userRepository.findByEmail(userId);
         userRepository.delete(user);
     }
 
@@ -103,12 +105,22 @@ public class UserService {
     }
 
     @Transactional
-    public UserModel updateProfile(String userId, UserModel userModel) {
+    public UserModel updateProfile(String email, UserModel userModel) {
 
-        User existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new DataNotFoundException("User not found"));
+        User existingUser = userRepository.findByEmail(email);
+        if (existingUser == null) {
+            throw new DataNotFoundException("User not found with email: " + email);
+        }
+
         userMapper.updateUsersModel(userModel, existingUser);
-        existingUser.setUserId(userId);
+
+        // Remove this if not required — userId should come from the entity, not override it
+        existingUser.setUserId(email);
+
+        // Only encode password if provided (to avoid encoding null or unchanged values)
+        if (userModel.getPassword() != null && !userModel.getPassword().isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(userModel.getPassword()));
+        }
 
         User savedUser = userRepository.save(existingUser);
 
@@ -118,11 +130,11 @@ public class UserService {
         List<Role> roleInDb = roleRepository.findAllByRoleIdIn(incomingRoleIdsFromModel);
 
         List<String> roleIdsInDb = roleInDb.stream()
-               .map(r -> r.getRoleId()).distinct().toList();
+                .map(r -> r.getRoleId()).distinct().toList();
 
-        List<UserRole> existingRoles = userRoleRepository.findByUserUserId(userId);
+        List<UserRole> existingRoles = userRoleRepository.findByUserUserId(email);
         List<String> existingRoleIds = existingRoles.stream()
-              .map(r -> r.getRole().getRoleId()).distinct().toList();
+                .map(r -> r.getRole().getRoleId()).distinct().toList();
 
         List<String> removeRoleIds = new ArrayList<>();
 
@@ -133,7 +145,7 @@ public class UserService {
         }
 
         if(!removeRoleIds.isEmpty()){
-            userRoleRepository.deleteByRoleRoleIdInAndUserUserId(removeRoleIds, userId);
+            userRoleRepository.deleteByRoleRoleIdInAndUserUserId(removeRoleIds, email);
         }
 
         List<String> nonAllocateRoleIds = incomingRoleIdsFromModel.stream()
@@ -154,8 +166,8 @@ public class UserService {
         }
 
         List<Role> updatedRoles = roleInDb.stream()
-               .filter(r -> nonAllocateRoleIds.contains(r.getRoleId()))
-               .toList();
+                .filter(r -> nonAllocateRoleIds.contains(r.getRoleId()))
+                .toList();
 
         for(Role role : updatedRoles){
             UserRole userRole = new UserRole();
@@ -166,11 +178,12 @@ public class UserService {
 
         UserModel updatedUserModel = userMapper.userToUserModel(savedUser);
 
-        List<UserRole> updatedUserRoles = userRoleRepository.findByUserUserId(userId);
+        List<UserRole> updatedUserRoles = userRoleRepository.findByUserUserId(email);
 
         List<RoleModel> updatedRoleModels = updatedUserRoles.stream()
-              .map(r -> roleMapper.roleToRoleModel(r.getRole())).toList();
+                .map(r -> roleMapper.roleToRoleModel(r.getRole())).toList();
         updatedUserModel.setRoles(updatedRoleModels);
         return updatedUserModel;
     }
+
 }
