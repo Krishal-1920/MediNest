@@ -27,14 +27,13 @@ public class CartService {
     private final CartRepository cartRepository;
 
     @Transactional
-    public CartModel addItemToCart(String userId, String productId) {
-        User userById = userRepository.findById(userId)
-                .orElseThrow(() -> new DataNotFoundException("User Id Not Found"));
+    public CartModel addItemToCart(String email, String productId) {
+        User userById = userRepository.findByEmail(email);
 
         Product productById = productRepository.findById(productId)
                 .orElseThrow(() -> new DataNotFoundException("Product Id Not Found"));
 
-        Optional<Cart> optionalCart = cartRepository.findByUserUserIdAndProductProductId(userId, productId);
+        Optional<Cart> optionalCart = cartRepository.findByUserUserIdAndProductProductId(userById.getUserId(), productId);
 
         Cart cart;
         if (optionalCart.isPresent()) {
@@ -74,11 +73,10 @@ public class CartService {
     }
 
 
-    public AddCartModel getCartDetails(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new DataNotFoundException("User Not found"));
+    public AddCartModel getCartDetails(String email) {
+        User user = userRepository.findByEmail(email);
 
-        List<Cart> cartList = cartRepository.findByUserUserId(userId);
+        List<Cart> cartList = cartRepository.findByUserUserId(user.getUserId());
 
         List<CartModel> cartModelList = cartList.stream().map(cart -> {
             CartModel cartModel = new CartModel();

@@ -16,7 +16,7 @@ public class BillingController {
 
     private final BillingService billingService;
 
-    @GetMapping("/getAllTheItems")
+    @GetMapping("/generateBill")
     public ResponseEntity<BillingModel> generateBill(@RequestParam String userId){
         return ResponseEntity.ok(billingService.generateBill(userId));
     }

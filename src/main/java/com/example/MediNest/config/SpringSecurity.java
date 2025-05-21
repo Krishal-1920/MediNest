@@ -30,7 +30,7 @@ public class SpringSecurity {
                                 .requestMatchers("/user/deleteAccount", "/user/updateDetails", "/user/getAllUsers").authenticated()
                                 .requestMatchers("/product/addItem", "/product/getMedicine", "/product/updateItem", "/product/deleteItem").authenticated()
                                 .requestMatchers("/cart/addToCart", "/cart/deleteItems", "/cart/getAllTheItems").authenticated()
-                                .requestMatchers("/billing/getAllTheItems").authenticated()
+                                .requestMatchers("/billing/generateBill").authenticated()
                                 .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

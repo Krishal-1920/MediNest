@@ -3,6 +3,7 @@ package com.example.MediNest.controller;
 import com.example.MediNest.model.AddCartModel;
 import com.example.MediNest.model.CartModel;
 import com.example.MediNest.service.CartService;
+import com.example.MediNest.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,20 +15,26 @@ public class CartController {
 
     private final CartService cartService;
 
+    private final JwtUtil jwtUtil;
+
     @PostMapping("/addToCart")
-    public ResponseEntity<CartModel> addItemToCart(@RequestParam String userId,
+    public ResponseEntity<CartModel> addItemToCart(@RequestHeader("Authorization") String tokenHeader,
                                                    @RequestParam String productId){
-        return ResponseEntity.ok(cartService.addItemToCart(userId, productId));
+        String authenticatedEmail = jwtUtil.extractUsername(tokenHeader);
+        return ResponseEntity.ok(cartService.addItemToCart(authenticatedEmail, productId));
     }
 
-    @DeleteMapping("/deleteItems/{cartId}")
-    public void deleteItem(@PathVariable String cartId){
+    @DeleteMapping("/deleteItems")
+    public void deleteItem(@RequestHeader("Authorization") String tokenHeader,
+                           @RequestParam String cartId){
+        String authenticatedEmail = jwtUtil.extractUsername(tokenHeader);
         cartService.deleteItemById(cartId);
     }
 
     @GetMapping("/getAllTheItems")
-    public ResponseEntity<AddCartModel> getAllItemsInCart(@RequestParam String userId) {
-        return ResponseEntity.ok(cartService.getCartDetails(userId));
+    public ResponseEntity<AddCartModel> getAllItemsInCart(@RequestHeader("Authorization") String tokenHeader) {
+        String authenticatedEmail = jwtUtil.extractUsername(tokenHeader);
+        return ResponseEntity.ok(cartService.getCartDetails(authenticatedEmail));
     }
 
 }
