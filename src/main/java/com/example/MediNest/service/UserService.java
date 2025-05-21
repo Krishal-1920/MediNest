@@ -104,20 +104,16 @@ public class UserService {
         return userModelList;
     }
 
+
     @Transactional
     public UserModel updateProfile(String email, UserModel userModel) {
-
         User existingUser = userRepository.findByEmail(email);
         if (existingUser == null) {
-            throw new DataNotFoundException("User not found with email: " + email);
+            throw new DataValidationException("User not found for email: " + email);
         }
 
         userMapper.updateUsersModel(userModel, existingUser);
 
-        // Remove this if not required — userId should come from the entity, not override it
-        existingUser.setUserId(email);
-
-        // Only encode password if provided (to avoid encoding null or unchanged values)
         if (userModel.getPassword() != null && !userModel.getPassword().isBlank()) {
             existingUser.setPassword(passwordEncoder.encode(userModel.getPassword()));
         }
@@ -132,20 +128,20 @@ public class UserService {
         List<String> roleIdsInDb = roleInDb.stream()
                 .map(r -> r.getRoleId()).distinct().toList();
 
-        List<UserRole> existingRoles = userRoleRepository.findByUserUserId(email);
+        List<UserRole> existingRoles = userRoleRepository.findByUserUserId(savedUser.getUserId());
         List<String> existingRoleIds = existingRoles.stream()
                 .map(r -> r.getRole().getRoleId()).distinct().toList();
 
         List<String> removeRoleIds = new ArrayList<>();
 
-        for(String roleId : existingRoleIds){
-            if(!incomingRoleIdsFromModel.contains(roleId)){
+        for (String roleId : existingRoleIds) {
+            if (!incomingRoleIdsFromModel.contains(roleId)) {
                 removeRoleIds.add(roleId);
             }
         }
 
-        if(!removeRoleIds.isEmpty()){
-            userRoleRepository.deleteByRoleRoleIdInAndUserUserId(removeRoleIds, email);
+        if (!removeRoleIds.isEmpty()) {
+            userRoleRepository.deleteByRoleRoleIdInAndUserUserId(removeRoleIds, savedUser.getUserId());
         }
 
         List<String> nonAllocateRoleIds = incomingRoleIdsFromModel.stream()
@@ -153,15 +149,15 @@ public class UserService {
                 .toList();
 
         List<String> invalidRoles = new ArrayList<>();
-        if(!nonAllocateRoleIds.isEmpty()){
-            for(String roleId : nonAllocateRoleIds){
-                if(!roleIdsInDb.contains(roleId)){
+        if (!nonAllocateRoleIds.isEmpty()) {
+            for (String roleId : nonAllocateRoleIds) {
+                if (!roleIdsInDb.contains(roleId)) {
                     invalidRoles.add(roleId);
                 }
             }
         }
 
-        if(!invalidRoles.isEmpty()){
+        if (!invalidRoles.isEmpty()) {
             throw new DataValidationException("Invalid roles: " + invalidRoles);
         }
 
@@ -169,7 +165,7 @@ public class UserService {
                 .filter(r -> nonAllocateRoleIds.contains(r.getRoleId()))
                 .toList();
 
-        for(Role role : updatedRoles){
+        for (Role role : updatedRoles) {
             UserRole userRole = new UserRole();
             userRole.setUser(savedUser);
             userRole.setRole(role);
@@ -178,12 +174,11 @@ public class UserService {
 
         UserModel updatedUserModel = userMapper.userToUserModel(savedUser);
 
-        List<UserRole> updatedUserRoles = userRoleRepository.findByUserUserId(email);
+        List<UserRole> updatedUserRoles = userRoleRepository.findByUserUserId(savedUser.getUserId());
 
         List<RoleModel> updatedRoleModels = updatedUserRoles.stream()
                 .map(r -> roleMapper.roleToRoleModel(r.getRole())).toList();
         updatedUserModel.setRoles(updatedRoleModels);
         return updatedUserModel;
     }
-
 }
