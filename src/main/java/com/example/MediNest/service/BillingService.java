@@ -22,12 +22,10 @@ public class BillingService {
 
     private final CartRepository cartRepository;
 
-    public BillingModel generateBill(String userId){
+    public BillingModel generateBill(String email){
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new DataNotFoundException("User Not Found"));
-
-        List<Cart> userCart = cartRepository.findByUserUserId(userId);
+        User user = userRepository.findByEmail(email);
+        List<Cart> userCart = cartRepository.findByUserUserId(user.getUserId());
         List<CartItemModel> myCart = new ArrayList<>();
         double totalPrice = 0;
 
