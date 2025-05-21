@@ -31,6 +31,7 @@ public class SpringSecurity {
                                 .requestMatchers("/product/addItem", "/product/getMedicine", "/product/updateItem", "/product/deleteItem").authenticated()
                                 .requestMatchers("/cart/addToCart", "/cart/deleteItems", "/cart/getAllTheItems").authenticated()
                                 .requestMatchers("/billing/generateBill").authenticated()
+                                .requestMatchers("/role/getAllRoles").authenticated()
                                 .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
